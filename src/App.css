@@ -1,0 +1,12 @@
+.app {
+  width: 60%;
+  padding: 0 0.5rem;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 800px) {
+  .app {
+    width: 98%;
+  }
+}
