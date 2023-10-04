@@ -1,11 +1,12 @@
-import { ChatDots } from "react-bootstrap-icons";
+import { ReplyAllFill } from "react-bootstrap-icons";
 import "./Header.css";
 import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
     <Link to={"/"} className="header">
-      <ChatDots /> Replies
+      <ReplyAllFill color="#ffc107" stroke="#fd7e14" />
+      &nbsp;Replies
     </Link>
   );
 };

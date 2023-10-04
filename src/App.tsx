@@ -1,27 +1,17 @@
-import { useSearchParams } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
+import Home from "./pages/Home";
+import About from "./pages/About";
 import Header from "./components/Header/Header";
-import Thread from "./components/Thread/Thread";
-import Search from "./components/Search/Search";
 
 function App() {
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get("id");
-
   return (
     <div className="app">
-      {!id && (
-        <>
-          <Header />
-          <Search />
-        </>
-      )}
-      {id && (
-        <>
-          <Header />
-          <Thread anchor={id} />
-        </>
-      )}
+      <Header />
+      <Routes>
+        <Route path="*" element={<Home />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
     </div>
   );
 }

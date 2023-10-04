@@ -35,11 +35,11 @@ const Search = () => {
   };
 
   return (
-    <InputGroup className="mb-3" id="search-input">
+    <InputGroup className="mt-3 mb-3" id="search-input">
       <Form.Control
         value={inputValue ? inputValue : ""}
         onChange={(e) => setInputValue(e.target.value)}
-        placeholder={"Enter noteid or naddr to view replies..."}
+        placeholder={"Enter noteid, naddr, nevent..."}
         onKeyDown={searchHandleByEnter}
       />
       <Button
