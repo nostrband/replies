@@ -27,6 +27,7 @@ const Home = () => {
       )}
       {id && (
         <>
+          <Search />
           <Thread anchor={id} />
         </>
       )}
