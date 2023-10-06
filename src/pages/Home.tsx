@@ -26,7 +26,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
           const event = await ndk.fetchEvent({ kinds: [1], ids: [eventId] });
           const eventAuthor = await ndk.fetchEvent({
             kinds: [0],
-          //@ts-ignore
+            //@ts-ignore
             authors: [event?.pubkey],
           });
           const author = eventAuthor?.content
