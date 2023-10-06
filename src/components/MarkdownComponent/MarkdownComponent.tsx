@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-// import remarkGfm from "remark-gfm";
+import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
 import cl from "./MarkdownComponent.module.css";
 import { useState } from "react";
@@ -27,9 +27,7 @@ const MarkdownComponent = (props: MarkdownType) => {
     const renderLink = ({ children, href }: linkType) => {
       return (
         <Link to={href} onClick={(e) => e.stopPropagation()}>
-          {children[0]
-            .replace(/^(https|http)?:\/\//, "")
-            .replace(/(.{16}).*(.{10})$/, "$1...$2")}
+          {children}
         </Link>
       );
     };
@@ -38,7 +36,7 @@ const MarkdownComponent = (props: MarkdownType) => {
       <>
         <ReactMarkdown
           className={cl.postAbout}
-          //   remarkPlugins={[remarkGfm]}
+          remarkPlugins={[remarkGfm]}
           //@ts-ignore
           components={{ a: renderLink }}
         >
