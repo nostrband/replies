@@ -1,11 +1,51 @@
-import Header from "../components/Header/Header";
 import Thread from "../components/Thread/Thread";
 import Search from "../components/Search/Search";
 import { Link, useSearchParams } from "react-router-dom";
+import NDK, { NDKEvent, NDKUserProfile } from "@nostr-dev-kit/ndk";
+import { nip19 } from "nostr-tools";
+import { useEffect, useState } from "react";
+import MarkdownComponent from "../components/MarkdownComponent/MarkdownComponent";
 
-const Home = () => {
+const Home = ({ ndk }: { ndk: NDK }) => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
+  const [event, setEvent] = useState<NDKEvent | null>();
+  const [author, setAuthor] = useState<NDKUserProfile | null>();
+  const [authorNpub, setAuthorNpub] = useState("");
+
+  useEffect(() => {
+    fetchEvent();
+  }, []);
+
+  const fetchEvent = async () => {
+    try {
+      if (ndk instanceof NDK) {
+        const eventId = id ? nip19.decode(id).data : "";
+        if (eventId) {
+          //@ts-ignore
+          const event = await ndk.fetchEvent({ kinds: [1], ids: [eventId] });
+          const eventAuthor = await ndk.fetchEvent({
+            kinds: [0],
+            //@ts-ignore
+            authors: [event?.pubkey],
+          });
+          const author = eventAuthor?.content
+            ? JSON.parse(eventAuthor?.content)
+            : null;
+          const npub = eventAuthor?.pubkey
+            ? nip19.npubEncode(eventAuthor?.pubkey)
+            : "";
+          setAuthorNpub(npub);
+
+          setAuthor(author);
+          setEvent(event);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <>
       {!id && (
@@ -28,6 +68,26 @@ const Home = () => {
       {id && (
         <>
           <Search />
+          {event && author && (
+            <div className="note">
+              <div className="note-author">
+                <div className="note-author-avatar">
+                  <img
+                    alt="avatar"
+                    src={author.image ? author.image : author.picture}
+                  />
+                </div>
+                <div className="note-author-name">
+                  <Link to={`https://new.nostr.band/${authorNpub}`}>
+                    {author.displayName ? author.displayName : author.name}
+                  </Link>
+                </div>
+              </div>
+              <div className="note-content">
+                <MarkdownComponent content={event.content} />
+              </div>
+            </div>
+          )}
           <Thread anchor={id} />
         </>
       )}
