@@ -11,7 +11,7 @@ const Search = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [inputValue, setInputValue] = useState(
-    searchParams.get("id") ? searchParams.get("id") : "",
+    searchParams.get("id") ? searchParams.get("id") : ""
   );
 
   const searchHandleByEnter = (e: React.KeyboardEvent) => {
