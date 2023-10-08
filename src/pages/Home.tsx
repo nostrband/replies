@@ -1,7 +1,7 @@
 import Thread from "../components/Thread/Thread";
 import Search from "../components/Search/Search";
 import { Link, useSearchParams } from "react-router-dom";
-import NDK, { NDKEvent, NDKUserProfile } from "@nostrband/ndk";
+import NDK, { NDKEvent, NDKUserProfile } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 import MarkdownComponent from "../components/MarkdownComponent/MarkdownComponent";
@@ -24,9 +24,9 @@ const Home = ({ ndk }: { ndk: NDK }) => {
         if (eventId) {
           //@ts-ignore
           const event = await ndk.fetchEvent({ kinds: [1], ids: [eventId] });
-          //@ts-ignore
           const eventAuthor = await ndk.fetchEvent({
             kinds: [0],
+            //@ts-ignore
             authors: [event?.pubkey],
           });
           const author = eventAuthor?.content
