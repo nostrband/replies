@@ -1,25 +1,44 @@
 import Thread from "../components/Thread/Thread";
 import Search from "../components/Search/Search";
 import { Link, useSearchParams } from "react-router-dom";
-import NDK, { NDKEvent, NDKUserProfile } from "@nostrband/ndk";
+import NDK, { NDKUserProfile } from "@nostrband/ndk";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 import MarkdownComponent from "../components/MarkdownComponent/MarkdownComponent";
+import { Spinner } from "react-bootstrap";
 
 const Home = ({ ndk }: { ndk: NDK }) => {
   const [searchParams] = useSearchParams();
-  const id = searchParams.get("id");
-  const [event, setEvent] = useState<NDKEvent | null>();
+  const [id, setId] = useState(searchParams.get("id"));
   const [author, setAuthor] = useState<NDKUserProfile | null>();
   const [authorNpub, setAuthorNpub] = useState("");
+  const [eventContent, setEventContent] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
+    isCorrectAnchor();
     fetchEvent();
-  }, []);
+  }, [searchParams.get("id")]);
+  const isCorrectAnchor = () => {
+    try {
+      const hex = searchParams.get("id")
+        ? nip19.decode(searchParams.get("id")!)
+        : "";
+      if (hex) {
+        setId(searchParams.get("id"));
+        setIsError(false);
+      }
+    } catch (e) {
+      setId("");
+      setIsError(true);
+    }
+  };
 
   const fetchEvent = async () => {
     try {
       if (ndk instanceof NDK) {
+        setIsLoading(true);
         const eventId = id ? nip19.decode(id).data : "";
         if (eventId) {
           //@ts-ignore
@@ -38,8 +57,18 @@ const Home = ({ ndk }: { ndk: NDK }) => {
           setAuthorNpub(npub);
 
           setAuthor(author);
-          setEvent(event);
+          if (event?.kind === 1 || event?.kind === 30023) {
+            setEventContent(event.content);
+          } else {
+            const eventTags = event?.tags ? event.tags : [];
+            const tagAlt = eventTags.find((tag) => tag[0] === "alt");
+            const content = `kind: ${event?.kind}, alt: ${
+              tagAlt ? tagAlt[1] : ""
+            }`;
+            setEventContent(content);
+          }
         }
+        setIsLoading(false);
       }
     } catch (e) {
       console.log(e);
@@ -53,6 +82,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
           <div className="app-container">
             <p>Enter noteid or naddr to view replies</p>
             <Search />
+            {isError && <strong>Invalid Note ID</strong>}
             <p className="mt-4">
               To learn more about this Nostr micro-app and how to use it click{" "}
               <Link to="/about">here</Link>.
@@ -67,8 +97,13 @@ const Home = ({ ndk }: { ndk: NDK }) => {
       )}
       {id && (
         <>
+          {isLoading && (
+            <div className="d-flex justify-content-center pt-3">
+              <Spinner />
+            </div>
+          )}
           <Search />
-          {event && author && (
+          {author && (
             <div className="note">
               <div className="note-author">
                 <div className="note-author-avatar">
@@ -84,7 +119,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
                 </div>
               </div>
               <div className="note-content">
-                <MarkdownComponent content={event.content} />
+                <MarkdownComponent content={eventContent} />
               </div>
             </div>
           )}
