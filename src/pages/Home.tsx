@@ -5,6 +5,7 @@ import NDK, { NDKEvent, NDKUserProfile } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 import MarkdownComponent from "../components/MarkdownComponent/MarkdownComponent";
+import { Spinner } from "react-bootstrap";
 
 const Home = ({ ndk }: { ndk: NDK }) => {
   const [searchParams] = useSearchParams();
@@ -12,6 +13,8 @@ const Home = ({ ndk }: { ndk: NDK }) => {
   const [event, setEvent] = useState<NDKEvent | null>();
   const [author, setAuthor] = useState<NDKUserProfile | null>();
   const [authorNpub, setAuthorNpub] = useState("");
+  const [eventContent, setEventContent] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchEvent();
@@ -20,6 +23,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
   const fetchEvent = async () => {
     try {
       if (ndk instanceof NDK) {
+        setIsLoading(true);
         const eventId = id ? nip19.decode(id).data : "";
         if (eventId) {
           //@ts-ignore
@@ -38,8 +42,19 @@ const Home = ({ ndk }: { ndk: NDK }) => {
           setAuthorNpub(npub);
 
           setAuthor(author);
+          if (event?.kind === 1 || event?.kind === 30023) {
+            setEventContent(event.content);
+          } else {
+            const eventTags = event?.tags ? event.tags : [];
+            const tagAlt = eventTags.find((tag) => tag[0] === "alt");
+            const content = `kind: ${event?.kind}, alt: ${
+              tagAlt ? tagAlt[1] : ""
+            }`;
+            setEventContent(content);
+          }
           setEvent(event);
         }
+        setIsLoading(false);
       }
     } catch (e) {
       console.log(e);
@@ -68,7 +83,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
       {id && (
         <>
           <Search />
-          {event && author && (
+          {!isLoading && author ? (
             <div className="note">
               <div className="note-author">
                 <div className="note-author-avatar">
@@ -84,8 +99,12 @@ const Home = ({ ndk }: { ndk: NDK }) => {
                 </div>
               </div>
               <div className="note-content">
-                <MarkdownComponent content={event.content} />
+                <MarkdownComponent content={eventContent} />
               </div>
+            </div>
+          ) : (
+            <div className="d-flex justify-content-center pt-3">
+              <Spinner />
             </div>
           )}
           <Thread anchor={id} />
