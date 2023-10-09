@@ -97,12 +97,12 @@ const Home = ({ ndk }: { ndk: NDK }) => {
       )}
       {id && (
         <>
+          <Search />
           {isLoading && (
             <div className="d-flex justify-content-center pt-3">
               <Spinner />
             </div>
           )}
-          <Search />
           {author && (
             <div className="note">
               <div className="note-author">
