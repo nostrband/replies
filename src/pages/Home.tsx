@@ -40,14 +40,19 @@ const Home = ({ ndk }: { ndk: NDK }) => {
       if (ndk instanceof NDK) {
         setIsLoading(true);
         const eventId = id ? nip19.decode(id).data : "";
+
         if (eventId) {
           //@ts-ignore
-          const event = await ndk.fetchEvent({ kinds: [1], ids: [eventId] });
+          const event = await ndk.fetchEvent({
+            kinds: [1],
+            ids: [eventId.id ? eventId.id : eventId],
+          });
           //@ts-ignore
           const eventAuthor = await ndk.fetchEvent({
             kinds: [0],
             authors: [event?.pubkey],
           });
+
           const author = eventAuthor?.content
             ? JSON.parse(eventAuthor?.content)
             : null;
@@ -114,7 +119,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
                 </div>
                 <div className="note-author-name">
                   <Link to={`https://new.nostr.band/${authorNpub}`}>
-                    {author.displayName ? author.displayName : author.name}
+                    {author.display_name ? author.display_name : author.name}
                   </Link>
                 </div>
               </div>
