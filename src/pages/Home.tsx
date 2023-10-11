@@ -1,6 +1,6 @@
 import Thread from "../components/Thread/Thread";
 import Search from "../components/Search/Search";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import NDK, { NDKUserProfile } from "@nostrband/ndk";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { Spinner } from "react-bootstrap";
 
 const Home = ({ ndk }: { ndk: NDK }) => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [id, setId] = useState<string>(
     searchParams.get("id")! ? searchParams.get("id")! : ""
   );
@@ -20,8 +21,11 @@ const Home = ({ ndk }: { ndk: NDK }) => {
 
   useEffect(() => {
     isCorrectAnchor();
-    fetchEvent();
   }, [searchParams.get("id")]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [id]);
   const isCorrectAnchor = () => {
     try {
       const hex = searchParams.get("id")
