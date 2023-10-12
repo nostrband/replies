@@ -5,6 +5,7 @@
   "dependencies": {
     "@nostr-dev-kit/ndk-react": "^0.1.1",
     "@nostrband/ndk": "^0.7.8",
+    "@nostrband/nostr-tools": "^1.14.4",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

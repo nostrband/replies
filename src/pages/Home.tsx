@@ -1,6 +1,6 @@
 import Thread from "../components/Thread/Thread";
 import Search from "../components/Search/Search";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import NDK, { NDKUserProfile } from "@nostrband/ndk";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
@@ -9,7 +9,10 @@ import { Spinner } from "react-bootstrap";
 
 const Home = ({ ndk }: { ndk: NDK }) => {
   const [searchParams] = useSearchParams();
-  const [id, setId] = useState(searchParams.get("id"));
+  const location = useLocation();
+  const [id, setId] = useState<string>(
+    searchParams.get("id")! ? searchParams.get("id")! : ""
+  );
   const [author, setAuthor] = useState<NDKUserProfile | null>();
   const [authorNpub, setAuthorNpub] = useState("");
   const [eventContent, setEventContent] = useState("");
@@ -18,15 +21,18 @@ const Home = ({ ndk }: { ndk: NDK }) => {
 
   useEffect(() => {
     isCorrectAnchor();
-    fetchEvent();
   }, [searchParams.get("id")]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [id]);
   const isCorrectAnchor = () => {
     try {
       const hex = searchParams.get("id")
         ? nip19.decode(searchParams.get("id")!)
         : "";
       if (hex) {
-        setId(searchParams.get("id"));
+        setId(searchParams.get("id")!);
         setIsError(false);
       }
     } catch (e) {
@@ -39,15 +45,66 @@ const Home = ({ ndk }: { ndk: NDK }) => {
     try {
       if (ndk instanceof NDK) {
         setIsLoading(true);
-        const eventId = id ? nip19.decode(id).data : "";
-        if (eventId) {
+        const eventDecode = nip19.decode(id);
+
+        if (eventDecode.type === "naddr") {
+          const eventData = eventDecode.data;
           //@ts-ignore
-          const event = await ndk.fetchEvent({ kinds: [1], ids: [eventId] });
+          const event = await ndk.fetchEvent({
+            authors: [eventData.pubkey],
+            kinds: [eventData.kind],
+            "#d": [eventData.identifier],
+          });
           //@ts-ignore
           const eventAuthor = await ndk.fetchEvent({
             kinds: [0],
             authors: [event?.pubkey],
           });
+          const author = eventAuthor?.content
+            ? JSON.parse(eventAuthor?.content)
+            : null;
+          const npub = eventAuthor?.pubkey
+            ? nip19.npubEncode(eventAuthor?.pubkey)
+            : "";
+          setAuthorNpub(npub);
+
+          setAuthor(author);
+          setEventContent(event!.content ? event!.content : "");
+        } else if (eventDecode.type === "nevent") {
+          const eventData = eventDecode.data;
+          //@ts-ignore
+          const event = await ndk.fetchEvent({
+            kinds: [1],
+            ids: [eventData.id],
+          });
+          //@ts-ignore
+          const eventAuthor = await ndk.fetchEvent({
+            kinds: [0],
+            authors: [event?.pubkey],
+          });
+          const author = eventAuthor?.content
+            ? JSON.parse(eventAuthor?.content)
+            : null;
+          const npub = eventAuthor?.pubkey
+            ? nip19.npubEncode(eventAuthor?.pubkey)
+            : "";
+          setAuthorNpub(npub);
+
+          setAuthor(author);
+          setEventContent(event!.content ? event!.content : "");
+        } else {
+          const eventData = eventDecode.data;
+          //@ts-ignore
+          const event = await ndk.fetchEvent({
+            kinds: [1],
+            ids: [eventData],
+          });
+          //@ts-ignore
+          const eventAuthor = await ndk.fetchEvent({
+            kinds: [0],
+            authors: [event?.pubkey],
+          });
+
           const author = eventAuthor?.content
             ? JSON.parse(eventAuthor?.content)
             : null;
@@ -114,7 +171,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
                 </div>
                 <div className="note-author-name">
                   <Link to={`https://new.nostr.band/${authorNpub}`}>
-                    {author.displayName ? author.displayName : author.name}
+                    {author.display_name ? author.display_name : author.name}
                   </Link>
                 </div>
               </div>
