@@ -24,16 +24,23 @@ const Home = ({ ndk }: { ndk: NDK }) => {
   }, [searchParams.get("id")]);
 
   useEffect(() => {
-    fetchEvent();
+    setAuthor(null);
+    if (!id.startsWith("http")) {
+      fetchEvent();
+    }
   }, [id]);
   const isCorrectAnchor = () => {
     try {
-      const hex = searchParams.get("id")
-        ? nip19.decode(searchParams.get("id")!)
-        : "";
-      if (hex) {
+      if (searchParams.get("id")!.startsWith("https")) {
         setId(searchParams.get("id")!);
-        setIsError(false);
+      } else {
+        const hex = searchParams.get("id")
+          ? nip19.decode(searchParams.get("id")!)
+          : "";
+        if (hex) {
+          setId(searchParams.get("id")!);
+          setIsError(false);
+        }
       }
     } catch (e) {
       setId("");
