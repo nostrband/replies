@@ -3,7 +3,7 @@ import Search from "../components/Search/Search";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import NDK, { NDKUserProfile } from "@nostrband/ndk";
 import { nip19 } from "nostr-tools";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MarkdownComponent from "../components/MarkdownComponent/MarkdownComponent";
 import { Spinner } from "react-bootstrap";
 
@@ -13,6 +13,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
   const [id, setId] = useState<string>(
     searchParams.get("id")! ? searchParams.get("id")! : ""
   );
+  const hasNoSearch = useRef<boolean>(searchParams.has("nosearch"));
   const [author, setAuthor] = useState<NDKUserProfile | null>();
   const [authorNpub, setAuthorNpub] = useState("");
   const [eventContent, setEventContent] = useState("");
@@ -161,7 +162,7 @@ const Home = ({ ndk }: { ndk: NDK }) => {
       )}
       {id && (
         <>
-          <Search />
+          {!hasNoSearch.current && <Search />}
           {isLoading && (
             <div className="d-flex justify-content-center pt-3">
               <Spinner />
